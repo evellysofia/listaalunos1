@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista Interativa de Alunos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #input-area {
+      margin-bottom: 20px;
+    }
+
+    #student-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    li.completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lista de Alunos</h1>
+  <div id="input-area">
+    <input type="text" id="student-name" placeholder="Digite o nome">
+    <input type="number" id="student-number" placeholder="Digite o número">
+    <button id="add-button">Adicionar</button>
+  </div>
+  <ul id="student-list"></ul>
+  <button id="clear-all-button">Limpar Lista</button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const studentNameInput = document.getElementById('student-name');
+      const studentNumberInput = document.getElementById('student-number');
+      const addButton = document.getElementById('add-button');
+      const studentList = document.getElementById('student-list');
+      const clearAllButton = document.getElementById('clear-all-button');
+
+      // Carregar do LocalStorage
+      const loadStudents = () => {
+        const students = JSON.parse(localStorage.getItem('students')) || [];
+        students.forEach(({ name, number, completed }) => {
+          addStudentToList(name, number, completed);
+        });
+      };
+
+      const saveStudents = () => {
+        const students = [...studentList.children].map(li => ({
+          name: li.querySelector('.name').textContent,
+          number: li.querySelector('.number').textContent,
+          completed: li.classList.contains('completed')
+        }));
+        localStorage.setItem('students', JSON.stringify(students));
+      };
+
+      const addStudentToList = (name, number, completed = false) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class="name">${name}</span> - <span class="number">${number}</span>
+          <button class="delete-button">Remover</button>
+          <button class="mark-button">Marcar</button>
+        `;
+        if (completed) li.classList.add('completed');
+
+        li.querySelector('.delete-button').addEventListener('click', () => {
+          li.remove();
+          saveStudents();
+        });
+
+        li.querySelector('.mark-button').addEventListener('click', () => {
+          li.classList.toggle('completed');
+          saveStudents();
+        });
+
+        studentList.appendChild(li);
+        saveStudents();
+      };
+
+      addButton.addEventListener('click', () => {
+        const name = studentNameInput.value.trim();
+        const number = studentNumberInput.value.trim();
+        if (name && number) {
+          addStudentToList(name, number);
+          studentNameInput.value = '';
+          studentNumberInput.value = '';
+        }
+      });
+
+      clearAllButton.addEventListener('click', () => {
+        studentList.innerHTML = '';
+        localStorage.removeItem('students');
+      });
+
+      loadStudents();
+    });
+  </script>
+</body>
+</html>
